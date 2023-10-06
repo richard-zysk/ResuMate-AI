@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AlertColor, Autocomplete, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, MenuItem, Paper, Select, SelectChangeEvent, Stack, TextField } from "@mui/material";
+import { AlertColor, Autocomplete, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, MenuItem, Paper, Select, SelectChangeEvent, Stack, TextField, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -18,9 +18,7 @@ import CustomSnackbar from "../common/snackBar";
 import { useAuth } from "../auth/authProvider";
 import { apiget, apipost } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
-
-
-
+import ReactWordcloud from 'react-wordcloud';
 
 
 interface SnackMessageProps {
@@ -29,11 +27,15 @@ interface SnackMessageProps {
 }
 
 export default function Table() {
-  const {loading, setLoading} = useAuth();
+
+
+
+
+  const { loading, setLoading } = useAuth();
   const [open, setOpen] = React.useState(false);
   const [snackOpen, setSnackOpen] = React.useState(false);
   const [data, setData] = React.useState([] as any)
-  const [status, setStatus] =React.useState('')
+  const [status, setStatus] = React.useState('')
   const [comments, setComments] = React.useState('')
   const [message, setMessage] = React.useState<SnackMessageProps>({
     msg: "uploaded!!",
@@ -144,8 +146,7 @@ export default function Table() {
   const handleDelete = async (params: any) => {
     try {
       const email = params?.row?.email
-      const response = await apiget(`/pdf/status?email=${email}`)
-      console.log("DTA", response)
+      const response = await apiget(`/pdf/delete-user-score?email=${email}`)
       if (response?.data) {
         setSnackOpen(true)
         setMessage({ msg: "Deleted successfully", color: 'success' })
@@ -170,7 +171,31 @@ export default function Table() {
       field: "name",
       headerName: "Name",
       width: 150,
-      editable: true,
+      renderCell: (params: GridRenderCellParams<any>) => {
+        const words = [
+          {
+            text: 'told',
+            value: 64,
+          },
+          {
+            text: 'mistake',
+            value: 11,
+          },
+          {
+            text: 'thought',
+            value: 16,
+          },
+          {
+            text: 'bad',
+            value: 17,
+          },
+        ]
+        return (<>
+         <>{params?.value}</>
+          {/* // </LightTooltip> */}
+        </>
+        )
+      },
     },
     {
       field: "email",
@@ -249,19 +274,19 @@ export default function Table() {
         { label: "InterviewScheduled", value: "InterviewScheduled" }]
         return (
           <Stack sx={{ width: "100%" }}>
-          <Select
-            labelId="demo-simple-select-standard-label"
-            id="demo-simple-select-standard"
-            value={params?.value}
-            defaultValue={params?.value}
-            onChange={handleChange}
-            label="Status"
-            variant="standard"
-          >
-            {options.map((opt: any) => {
-              return (<MenuItem value={opt?.value}>{opt?.label}</MenuItem>)
-            })}
-          </Select>
+            <Select
+              labelId="demo-simple-select-standard-label"
+              id="demo-simple-select-standard"
+              value={params?.value}
+              defaultValue={params?.value}
+              onChange={handleChange}
+              label="Status"
+              variant="standard"
+            >
+              {options.map((opt: any) => {
+                return (<MenuItem value={opt?.value}>{opt?.label}</MenuItem>)
+              })}
+            </Select>
           </Stack>
         )
       },
@@ -301,20 +326,21 @@ export default function Table() {
         const handleChange = (event: any) => {
           console.log(event.target.value, params?.value);
         };
-        return(
-        <Stack sx={{ width: "100%" }}>
-          <TextField
-          id="outlined-multiline-static"
-          label=""
-          multiline
-          rows={2}
-          variant="outlined"
-          onChange={handleChange}
-          value={params?.value}
-          defaultValue={params?.value}
-        />
-        </Stack>
-      )}
+        return (
+          <Stack sx={{ width: "100%" }}>
+            <TextField
+              id="outlined-multiline-static"
+              label=""
+              multiline
+              rows={2}
+              variant="outlined"
+              onChange={handleChange}
+              value={params?.value}
+              defaultValue={params?.value}
+            />
+          </Stack>
+        )
+      }
     },
     {
       field: 'actions',
