@@ -44,6 +44,7 @@ import { useAuth } from "../auth/authProvider";
 import { apidelete, apiget, apipost, apiput } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
 import ReactWordcloud from "react-wordcloud";
+import SearchChat from "../common/searchChat";
 
 export default function Table() {
   const { loading, snackOpen, setSnackOpen, message, setLoading, setMessage } =
@@ -55,7 +56,9 @@ export default function Table() {
   const [status, setStatus] = React.useState("");
   const [comments, setComments] = React.useState("");
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [anchorElName, setAnchorElName] = React.useState<null | HTMLElement>(null);
+  const [anchorElName, setAnchorElName] = React.useState<null | HTMLElement>(
+    null
+  );
   const [files, setFiles] = React.useState([] as any);
 
   const handleClose = () => {
@@ -195,10 +198,10 @@ export default function Table() {
       headerName: "Name",
       width: 150,
       renderCell: (params: GridRenderCellParams<any>) => {
-        const skills = params?.row?.skills.map((skill: any)=>({
+        const skills = params?.row?.skills.map((skill: any) => ({
           text: skill?.skill,
-          value:skill?.value
-        }))
+          value: skill?.value,
+        }));
         // const words = [
         //   {
         //     text: "told",
@@ -220,44 +223,44 @@ export default function Table() {
         const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
           setAnchorElName(event.currentTarget);
         };
-      
+
         const handlePopoverClose = () => {
           setAnchorElName(null);
         };
-      
+
         const openName = Boolean(anchorEl);
         return (
           <div>
-          <Typography
-            aria-owns={openName ? 'mouse-over-popover' : undefined}
-            aria-haspopup="true"
-            onMouseEnter={handlePopoverOpen}
-            onMouseLeave={handlePopoverClose}
-          >
-            {params?.value}
-          </Typography>
-          <Popover
-            id="mouse-over-popover"
-            sx={{
-              pointerEvents: 'none',
-            }}
-            open={openName}
-            anchorEl={anchorElName}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'left',
-            }}
-            onClose={handlePopoverClose}
-            disableRestoreFocus
-          >
-            {/* <ReactWordcloud words={skills}/> */}
-            <Typography sx={{ p: 1 }}>{params?.value}</Typography>
-          </Popover>
-        </div>
+            <Typography
+              aria-owns={openName ? "mouse-over-popover" : undefined}
+              aria-haspopup="true"
+              onMouseEnter={handlePopoverOpen}
+              onMouseLeave={handlePopoverClose}
+            >
+              {params?.value}
+            </Typography>
+            <Popover
+              id="mouse-over-popover"
+              sx={{
+                pointerEvents: "none",
+              }}
+              open={openName}
+              anchorEl={anchorElName}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              onClose={handlePopoverClose}
+              disableRestoreFocus
+            >
+              {/* <ReactWordcloud words={skills}/> */}
+              <Typography sx={{ p: 1 }}>{params?.value}</Typography>
+            </Popover>
+          </div>
         );
       },
     },
@@ -297,7 +300,7 @@ export default function Table() {
           color = "255, 153, 51";
         } else if (params?.value >= 75) {
           color = "0, 153, 51";
-        } 
+        }
         return (
           <Stack sx={{ width: "100%" }}>
             <FormLabel>{progress}%</FormLabel>
@@ -397,10 +400,8 @@ export default function Table() {
       minWidth: 240,
       editable: true,
       renderCell: (params: GridRenderCellParams<any, Date>) => {
-        const handleChange = async (
-          event: any
-        ) => {
-          console.log(event)
+        const handleChange = async (event: any) => {
+          console.log(event);
           setComments(event?.target?.value);
           const data = {
             email: params?.row?.email,
@@ -455,6 +456,7 @@ export default function Table() {
     {
       field: "actions",
       headerName: "Actions",
+      pinnable: true,
       type: "actions",
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
@@ -477,19 +479,24 @@ export default function Table() {
       <Box
         sx={{
           display: "flex",
-          alignItems: "end",
-          justifyContent: "end",
+          alignItems: "center",
+          justifyContent: "space-between",
+          alignContent: 'center',
           py: 2,
         }}
       >
         <Button
           variant="contained"
           component="label"
+          color='secondary'
           onClick={handleClickOpen}
           startIcon={<UploadFileIcon />}
         >
           Upload Files
         </Button>
+        <Box>
+          <SearchChat />
+        </Box>
       </Box>
       <MaxWidthDialog
         setOpen={setOpen}
@@ -499,6 +506,7 @@ export default function Table() {
         children={<DropzoneComponent files={files} setFiles={setFiles} />}
       />
       <DataGrid
+        autoHeight={true}
         rows={rows}
         columns={columns}
         slots={{
@@ -512,7 +520,7 @@ export default function Table() {
           },
         }}
         pageSizeOptions={[10]}
-        checkboxSelection
+        // checkboxSelection
         disableRowSelectionOnClick
         getRowHeight={() => "auto"}
         components={{

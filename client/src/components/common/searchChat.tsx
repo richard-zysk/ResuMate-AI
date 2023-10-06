@@ -1,7 +1,7 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Fab from "@mui/material/Fab";
-import EditIcon from "@mui/icons-material/Edit";
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import SearchModal from "./searchModal";
 import { Popover } from "@mui/material";
 
@@ -11,10 +11,11 @@ export default function SearchChat() {
     setOpenSearchModal(true);
   };
   return (
-    <Box sx={{ "& > :not(style)": { p: 1 } }}>
+    <Box sx={{ "& > :not(style)": { p: 1} }}>
       <SearchModal open={openSearchModal} setOpen={setOpenSearchModal} />
-      <Fab color="secondary" aria-label="edit" onClick={handleSearchOpen}>
-        <EditIcon />
+      <Fab color="secondary" aria-label="edit" onClick={handleSearchOpen} variant="extended">
+        <ManageSearchIcon />
+        Custom Search
       </Fab>
     </Box>
   );
