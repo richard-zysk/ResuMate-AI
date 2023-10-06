@@ -85,7 +85,7 @@ export default function Table() {
       }
     } catch (err: any) {
       setLoading(false);
-      console.log(err);
+      setSnackOpen(true)
       setMessage({ msg: "failed", color: "error" });
     }
   };
@@ -95,11 +95,12 @@ export default function Table() {
       const results = await apipost(`/pdf/generate-score?email=${email}`, {});
       if (index === files.length - 1 && results?.status === 201) {
         setSnackOpen(true);
-        setMessage({ msg: "uploaded", color: "success" });
+        setMessage({ msg: "uploaded files!!", color: "success" });
         fetchResumes();
       }
     } catch (err: any) {
       setLoading(false);
+      setSnackOpen(true);
       setMessage({ msg: "failed", color: "error" });
     }
   };
@@ -130,12 +131,14 @@ export default function Table() {
     } catch (err: any) {
       setLoading(false);
       console.log(err);
+      setSnackOpen(true)
       setMessage({ msg: "failed", color: "error" });
     }
   };
 
   const handleClickOpen = () => {
     setOpen(true);
+    setFiles([])
   };
 
   const handleOpen = async (params: any) => {
