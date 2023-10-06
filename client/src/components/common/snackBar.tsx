@@ -20,8 +20,8 @@ interface CustomSnackbarProps {
 }
 
 export default function CustomSnackbar(props: CustomSnackbarProps) {
-  const { open, setOpen, severity, message } = props;
-  const { setSnackOpen } = useAuth();
+  const { open, setOpen, severity } = props;
+  const { setSnackOpen, snackOpen, message, setMessage } = useAuth();
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -36,13 +36,13 @@ export default function CustomSnackbar(props: CustomSnackbarProps) {
 
   return (
     <Stack spacing={2} sx={{ width: "100%" }}>
-      <Snackbar open={open} autoHideDuration={2000} onClose={handleClose}>
+      <Snackbar open={snackOpen} autoHideDuration={2000} onClose={handleClose}>
         <Alert
           onClose={handleClose}
-          severity={severity}
+          severity={message?.color}
           sx={{ width: "100%" }}
         >
-          {message}
+          {message?.msg}
         </Alert>
       </Snackbar>
     </Stack>

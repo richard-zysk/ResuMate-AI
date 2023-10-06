@@ -43,6 +43,10 @@ export const AuthProvider = ({ children }: any) => {
     navigate("/signin", { replace: true });
   };
 
+  const closeSnackBar = () =>{
+    setSnackOpen(false)
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -56,7 +60,16 @@ export const AuthProvider = ({ children }: any) => {
       message, 
       setMessage,
     }),
-    [user]
+    [ user,
+      setUser,
+      login,
+      logout,
+      loading,
+      setLoading,
+      snackOpen, 
+      setSnackOpen, 
+      message, 
+      setMessage,]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

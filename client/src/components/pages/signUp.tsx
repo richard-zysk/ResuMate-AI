@@ -54,7 +54,6 @@ export default function SignUp() {
     const data = new FormData(event.currentTarget);
     try {
       const response = await apipost("/pdf/sign-up", data);
-      console.log(response);
       if (response?.data) {
         navigate("/signin");
         setSnackOpen(true);

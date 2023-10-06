@@ -17,7 +17,7 @@ export default function SimpleBackdrop() {
                 open={loading}
                 onClick={handleClose}
             >
-                <CircularProgress color="inherit" />
+                <CircularProgress color="primary" />
             </Backdrop>
         </div>
     );

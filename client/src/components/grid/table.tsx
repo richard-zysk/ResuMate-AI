@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  DialogContentText,
   FormLabel,
   Grid,
   LinearProgress,
@@ -38,13 +39,15 @@ import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
 import CustomSnackbar from "../common/snackBar";
 import { useAuth } from "../auth/authProvider";
-import { apiget, apipost } from "../../services/axiosClient";
+import { apidelete, apiget, apipost } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
 import ReactWordcloud from "react-wordcloud";
 
 export default function Table() {
-  const { loading, setLoading, setSnackOpen, setMessage } = useAuth();
+  const { loading, snackOpen, setSnackOpen, message, setLoading, setMessage } = useAuth();
   const [open, setOpen] = React.useState(false);
+  const [selectedParams, setSelectedParams] = React.useState<any>(null)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [data, setData] = React.useState([] as any);
   const [status, setStatus] = React.useState("");
   const [comments, setComments] = React.useState("");
@@ -61,13 +64,13 @@ export default function Table() {
       formattedData?.push({
         resumeId: resume?._id,
         id: index + 1,
-        isDeleted: resume?.data?.isDeleted,
-        name: resume?.data?.name,
-        email: resume?.data?.email,
-        phone: resume?.data?.phone,
-        role: resume?.data?.role,
-        score: resume?.data?.score,
-        location: resume?.data?.place,
+        isDeleted: resume?.isDeleted,
+        name: resume?.name,
+        email: resume?.email,
+        phone: resume?.phone,
+        role: resume?.suitable_role,
+        score: resume?.score,
+        location: resume?.place,
         skills: resume?.skills,
         status: resume?.status,
         comments: resume?.comments,
@@ -154,11 +157,12 @@ export default function Table() {
     }
   };
 
-  const handleDelete = async (params: any) => {
+  const handleDelete = async () => {
+    setDeleteOpen(false)
     try {
-      const email = params?.row?.email;
-      const response = await apiget(`/pdf/delete-user-score?email=${email}`);
-      if (response?.data) {
+      const email = selectedParams?.row?.email;
+      const response = await apidelete(`/pdf/delete-user-score?email=${email}`);
+      if (response?.data?.statusCode == 204) {
         setSnackOpen(true);
         setMessage({ msg: "Deleted successfully", color: "success" });
         fetchResumes();
@@ -169,6 +173,11 @@ export default function Table() {
       setMessage({ msg: "Failed to Delete", color: "error" });
     }
   };
+
+  const handleDeleteConfirm = (params: any) => {
+    setDeleteOpen(true);
+    setSelectedParams(params)
+  }
 
   React.useEffect(() => {
     fetchResumes();
@@ -361,7 +370,7 @@ export default function Table() {
         />,
         <GridActionsCellItem
           icon={<DeleteIcon />}
-          onClick={(e: any) => handleDelete(params)}
+          onClick={(e: any) => handleDeleteConfirm(params)}
           label="Delete"
         />,
       ],
@@ -412,6 +421,19 @@ export default function Table() {
             </Box>
           ),
         }}
+      />
+            <MaxWidthDialog
+        setOpen={setDeleteOpen}
+        open={deleteOpen}
+        handleClose={()=>{setDeleteOpen(false)}}
+        handleSubmit={handleDelete}
+        title=" Are you sure you want to delete?"
+        primaryButtonText="Delete"
+        children={<Box ><DialogContentText>
+          This resume will be deleted permanently. Please confirm your action.
+        </DialogContentText>
+           
+       </Box>}
       />
     </Box>
   );

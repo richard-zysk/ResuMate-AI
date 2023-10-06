@@ -32,9 +32,10 @@ const RouterApp = () => {
 }
 export default function App() {
   const { loading, snackOpen, setSnackOpen, message } = useAuth()
+
   return (
     <>
-      {loading && <SimpleBackdrop />}
+    {loading && <SimpleBackdrop/>}
       <RouterApp />
       <CustomSnackbar
         open={snackOpen}
