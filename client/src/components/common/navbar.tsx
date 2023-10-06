@@ -12,16 +12,14 @@ import FormGroup from '@mui/material/FormGroup';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { Link } from '@mui/material';
-import { useAuth } from './auth/authProvider';
+import { useAuth } from '../auth/authProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function MenuAppBar() {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { logout } = useAuth()
-  
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAuth(event.target.checked);
-  };
+  const navigate = useNavigate();
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -49,7 +47,7 @@ export default function MenuAppBar() {
           >
            
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={()=>{navigate("/")}}>
             ResuMate.AI
           </Typography>
           {auth && (
@@ -79,7 +77,8 @@ export default function MenuAppBar() {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem> <Link href="/profile" >Profile</Link></MenuItem>
+                <MenuItem onClick={()=>{navigate("/"); handleClose()}}> Dashboard</MenuItem>
+                <MenuItem onClick={()=>{navigate("/profile"); handleClose();}}> Profile</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
             </div>

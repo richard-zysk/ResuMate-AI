@@ -1,5 +1,26 @@
 import * as React from "react";
-import { AlertColor, Autocomplete, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, MenuItem, Paper, Select, SelectChangeEvent, Stack, TextField, Tooltip, TooltipProps, Typography, styled, tooltipClasses } from "@mui/material";
+import {
+  AlertColor,
+  Autocomplete,
+  Box,
+  Button,
+  Chip,
+  FormLabel,
+  Grid,
+  LinearProgress,
+  ListItem,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  TextField,
+  Tooltip,
+  TooltipProps,
+  Typography,
+  styled,
+  tooltipClasses,
+} from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -9,8 +30,9 @@ import {
   GridActionsCellItem,
   GridRowParams,
 } from "@mui/x-data-grid";
-import DeleteIcon from '@mui/icons-material/Delete';
-import LaunchIcon from '@mui/icons-material/Launch';
+import DeleteIcon from "@mui/icons-material/Delete";
+import LaunchIcon from "@mui/icons-material/Launch";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from "axios";
 import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
@@ -18,37 +40,23 @@ import CustomSnackbar from "../common/snackBar";
 import { useAuth } from "../auth/authProvider";
 import { apiget, apipost } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
-import ReactWordcloud from 'react-wordcloud';
-
-
-interface SnackMessageProps {
-  msg: string;
-  color: AlertColor;
-}
+import ReactWordcloud from "react-wordcloud";
 
 export default function Table() {
-
-
-
-
-  const { loading, setLoading } = useAuth();
+  const { loading, setLoading, setSnackOpen, setMessage } = useAuth();
   const [open, setOpen] = React.useState(false);
-  const [snackOpen, setSnackOpen] = React.useState(false);
-  const [data, setData] = React.useState([] as any)
-  const [status, setStatus] = React.useState('')
-  const [comments, setComments] = React.useState('')
-  const [message, setMessage] = React.useState<SnackMessageProps>({
-    msg: "uploaded!!",
-    color: "success",
-  });
+  const [data, setData] = React.useState([] as any);
+  const [status, setStatus] = React.useState("");
+  const [comments, setComments] = React.useState("");
   const [files, setFiles] = React.useState([] as any);
 
   const handleClose = () => {
     setOpen(false);
+    setFiles([]);
   };
 
   const formatData = (list: any) => {
-    const formattedData = [] as any
+    const formattedData = [] as any;
     list?.map((resume: any, index: number) => {
       formattedData?.push({
         resumeId: resume?._id,
@@ -62,65 +70,67 @@ export default function Table() {
         location: resume?.data?.place,
         skills: resume?.skills,
         status: resume?.status,
-        comments: resume?.comments
-      })
-    })
-    setData(formattedData)
-    setLoading(false)
-  }
+        comments: resume?.comments,
+      });
+    });
+    setData(formattedData);
+    setLoading(false);
+  };
 
   const fetchResumes = async () => {
     try {
-      const data = await apiget('/pdf/list-scores')
+      const data = await apiget("/pdf/list-scores");
       if (data?.data) {
-        formatData(data?.data)
+        formatData(data?.data);
       }
-    }
-    catch (err: any) {
-      setLoading(false)
+    } catch (err: any) {
+      setLoading(false);
       console.log(err);
-      setMessage({ msg: "failed", color: "error" })
+      setMessage({ msg: "failed", color: "error" });
     }
-
-  }
+  };
 
   const fetchEmails = async (email: string, index: number) => {
     try {
-      const results = await apipost(`/pdf/generate-score?email=${email}`, {})
-      if (index === (files.length - 1) && results?.status === 201) {
+      const results = await apipost(`/pdf/generate-score?email=${email}`, {});
+      if (index === files.length - 1 && results?.status === 201) {
         setSnackOpen(true);
-        setMessage({ msg: "uploaded", color: "success" })
+        setMessage({ msg: "uploaded", color: "success" });
         fetchResumes();
       }
+    } catch (err: any) {
+      setLoading(false);
+      setMessage({ msg: "failed", color: "error" });
     }
-    catch (err: any) {
-      setLoading(false)
-      setMessage({ msg: "failed", color: "error" })
-    }
-  }
+  };
 
   const handleSubmit = async () => {
     setOpen(false);
     const formData = new FormData();
     files.map((file: File) => {
-      formData.append("files", file)
-    })
+      formData.append("files", file);
+    });
     try {
       setLoading(true);
-      const response = await axios.post(`${BASE_URL}/pdf/extract-texts`, formData, {
-        headers: {
-          "Content-Type": 'multipart/form-data'
+      const response = await axios.post(
+        `${BASE_URL}/pdf/extract-texts`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
-      });
+      );
       if (response) {
         response?.data?.map((file: any, index: number) => {
-          fetchEmails(file?.text?.email, index)
-        })
+          fetchEmails(file?.text?.email, index);
+        });
+        setFiles([]);
       }
     } catch (err: any) {
-      setLoading(false)
+      setLoading(false);
       console.log(err);
-      setMessage({ msg: "failed", color: "error" })
+      setMessage({ msg: "failed", color: "error" });
     }
   };
 
@@ -130,40 +140,36 @@ export default function Table() {
 
   const handleOpen = async (params: any) => {
     try {
-      const email = params?.row?.email
-      const response = await apiget(`/pdf/list-S3?email=${email}`)
-      const url = response?.data?.s3Url
-      if (response) window?.open(url, '_blank')?.focus();
+      const email = params?.row?.email;
+      const response = await apiget(`/pdf/list-S3?email=${email}`);
+      const url = response?.data?.s3Url;
+      if (response) window?.open(url, "_blank")?.focus();
+    } catch (err: any) {
+      setLoading(false);
+      setSnackOpen(true);
+      setMessage({ msg: "Failed to Open", color: "error" });
     }
-    catch (err: any) {
-      setLoading(false)
-      setSnackOpen(true)
-      setMessage({ msg: "Failed to Open", color: 'error' })
-    }
-
-  }
+  };
 
   const handleDelete = async (params: any) => {
     try {
-      const email = params?.row?.email
-      const response = await apiget(`/pdf/delete-user-score?email=${email}`)
+      const email = params?.row?.email;
+      const response = await apiget(`/pdf/delete-user-score?email=${email}`);
       if (response?.data) {
-        setSnackOpen(true)
-        setMessage({ msg: "Deleted successfully", color: 'success' })
+        setSnackOpen(true);
+        setMessage({ msg: "Deleted successfully", color: "success" });
         fetchResumes();
       }
+    } catch (err: any) {
+      setLoading(false);
+      setSnackOpen(true);
+      setMessage({ msg: "Failed to Delete", color: "error" });
     }
-    catch (err: any) {
-      setLoading(false)
-      setSnackOpen(true)
-      setMessage({ msg: "Failed to Delete", color: 'error' })
-    }
-  }
+  };
 
   React.useEffect(() => {
     fetchResumes();
   }, []);
-
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
@@ -174,27 +180,28 @@ export default function Table() {
       renderCell: (params: GridRenderCellParams<any>) => {
         const words = [
           {
-            text: 'told',
+            text: "told",
             value: 64,
           },
           {
-            text: 'mistake',
+            text: "mistake",
             value: 11,
           },
           {
-            text: 'thought',
+            text: "thought",
             value: 16,
           },
           {
-            text: 'bad',
+            text: "bad",
             value: 17,
           },
-        ]
-        return (<>
-         <>{params?.value}</>
-          {/* // </LightTooltip> */}
-        </>
-        )
+        ];
+        return (
+          <>
+            <>{params?.value}</>
+            {/* // </LightTooltip> */}
+          </>
+        );
       },
     },
     {
@@ -225,14 +232,14 @@ export default function Table() {
       field: "score",
       headerName: "Score",
       renderCell: (params: GridRenderCellParams<any>) => {
-        let color = "0,255,0"
-        let progress = params?.value
+        let color = "0,255,0";
+        let progress = params?.value;
         if (params?.value <= 25) {
-          color = "255,0,0"
+          color = "255,0,0";
         } else if (params?.value <= 50) {
-          color = "255,255,0"
+          color = "255,255,0";
         } else if (params?.value <= 75) {
-          color = "0,0,255"
+          color = "0,0,255";
         } else {
           color = "0,255,0";
         }
@@ -246,32 +253,32 @@ export default function Table() {
                 height: 10,
                 backgroundColor: `rgb(${color},0.4)`,
                 "& .MuiLinearProgress-bar": {
-                  backgroundColor: `rgb(${color})`
-                }
+                  backgroundColor: `rgb(${color})`,
+                },
               }}
             />
           </Stack>
-
-        )
-      }
+        );
+      },
     },
     {
       field: "status",
       headerName: "Status",
       width: 180,
       renderCell: (params: GridRenderCellParams<any>) => {
-
         let value = { label: params?.value, value: params?.value };
         const handleChange = (event: SelectChangeEvent) => {
           console.log(event.target.value, params?.value);
         };
-        let options = [{ label: "New", value: "New" },
-        { label: "InProgress", value: "InProgress" },
-        { label: "Shortlisted", value: "Shortlisted" },
-        { label: "OnHold", value: "OnHold" },
-        { label: "Selected", value: "Selected" },
-        { label: "Rejected", value: "Rejected" },
-        { label: "InterviewScheduled", value: "InterviewScheduled" }]
+        let options = [
+          { label: "New", value: "New" },
+          { label: "InProgress", value: "InProgress" },
+          { label: "Shortlisted", value: "Shortlisted" },
+          { label: "OnHold", value: "OnHold" },
+          { label: "Selected", value: "Selected" },
+          { label: "Rejected", value: "Rejected" },
+          { label: "InterviewScheduled", value: "InterviewScheduled" },
+        ];
         return (
           <Stack sx={{ width: "100%" }}>
             <Select
@@ -284,11 +291,11 @@ export default function Table() {
               variant="standard"
             >
               {options.map((opt: any) => {
-                return (<MenuItem value={opt?.value}>{opt?.label}</MenuItem>)
+                return <MenuItem value={opt?.value}>{opt?.label}</MenuItem>;
               })}
             </Select>
           </Stack>
-        )
+        );
       },
     },
     {
@@ -303,17 +310,14 @@ export default function Table() {
         return (
           <Grid container spacing={1}>
             {arr?.map((data: any) => {
-
               return (
-                <Grid item >
-                  <Chip
-                    label={data?.skill}
-                  />
+                <Grid item>
+                  <Chip label={data?.skill} />
                 </Grid>
               );
             })}
           </Grid>
-        )
+        );
       },
     },
     {
@@ -339,26 +343,36 @@ export default function Table() {
               defaultValue={params?.value}
             />
           </Stack>
-        )
-      }
+        );
+      },
     },
     {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
+      field: "actions",
+      headerName: "Actions",
+      type: "actions",
       getActions: (params: GridRowParams) => [
-        <GridActionsCellItem icon={<LaunchIcon />} onClick={(e: any) => handleOpen(params)} label="Open" />,
-        <GridActionsCellItem icon={<DeleteIcon />} onClick={(e: any) => handleDelete(params)} label="Delete" />,
-      ]
-    }
+        <GridActionsCellItem
+          icon={<LaunchIcon />}
+          onClick={(e: any) => handleOpen(params)}
+          label="Open"
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          onClick={(e: any) => handleDelete(params)}
+          label="Delete"
+        />,
+      ],
+    },
   ];
-  const rows = data
+  const rows = data;
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Button variant="contained" component="label" onClick={handleClickOpen}>
-        Upload File
-      </Button>
+    <Box sx={{ width: "100%", py: 5, px: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "end", justifyContent: "end", py: 2}}>
+        <Button variant="contained" component="label" onClick={handleClickOpen} startIcon={<UploadFileIcon />}>
+          Upload Files
+        </Button>
+      </Box>
       <MaxWidthDialog
         setOpen={setOpen}
         open={open}
@@ -382,7 +396,7 @@ export default function Table() {
         pageSizeOptions={[10]}
         checkboxSelection
         disableRowSelectionOnClick
-        getRowHeight={() => 'auto'}
+        getRowHeight={() => "auto"}
         components={{
           NoRowsOverlay: () => (
             <Box height="100%" alignItems="center" justifyContent="center">
@@ -393,17 +407,9 @@ export default function Table() {
             <Box height="100%" alignItems="center" justifyContent="center">
               Local filter returns no result
             </Box>
-          )
+          ),
         }}
-      />
-      <CustomSnackbar
-        open={snackOpen}
-        setOpen={setSnackOpen}
-        message={message.msg}
-        severity={message.color}
       />
     </Box>
   );
 }
-
-

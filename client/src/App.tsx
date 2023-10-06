@@ -7,21 +7,22 @@ import DashBoard from "./components/pages/dashboard";
 import Profile from "./components/pages/profile";
 import SimpleBackdrop from "./components/common/loader";
 import { useAuth } from "./components/auth/authProvider";
+import CustomSnackbar from "./components/common/snackBar";
 
 const RouterApp = () => {
   return (
     <Routes>
       <Route path="/" element={
-        // <ProtectedRoute>
+        <ProtectedRoute>
         <DashBoard />
-        // </ProtectedRoute>
+        </ProtectedRoute>
       } />
       <Route
         path="/profile"
         element={
-          // <ProtectedRoute>
+          <ProtectedRoute>
           <Profile />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         }
       />
       <Route path="/signin" element={<SignInSide />} />
@@ -30,11 +31,17 @@ const RouterApp = () => {
   )
 }
 export default function App() {
-  const { loading } = useAuth()
+  const { loading, snackOpen, setSnackOpen, message } = useAuth()
   return (
     <>
       {loading && <SimpleBackdrop />}
       <RouterApp />
+      <CustomSnackbar
+        open={snackOpen}
+        setOpen={setSnackOpen}
+        message={message.msg}
+        severity={message.color}
+      />
     </>
   );
 }

@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { AlertColor } from "@mui/material";
+
+interface SnackMessageProps {
+  msg: string;
+  color: AlertColor;
+}
 
 interface IProvider {
     user: any;
@@ -9,11 +15,20 @@ interface IProvider {
     logout: () => void;
     loading: boolean;
     setLoading: any;
+    snackOpen: boolean;
+    setSnackOpen: any;
+    message: any;
+    setMessage: any;
 }
 const AuthContext = createContext<IProvider>({} as IProvider);
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useLocalStorage("user", null);
   const [loading, setLoading] = React.useState(false);
+  const [snackOpen, setSnackOpen] = React.useState(false);
+  const [message, setMessage] = React.useState<SnackMessageProps>({
+    msg: "",
+    color: "success",
+  });
   const navigate = useNavigate();
 
   // call this function when you want to authenticate the user
@@ -35,7 +50,11 @@ export const AuthProvider = ({ children }: any) => {
       login,
       logout,
       loading,
-      setLoading
+      setLoading,
+      snackOpen, 
+      setSnackOpen, 
+      message, 
+      setMessage,
     }),
     [user]
   );

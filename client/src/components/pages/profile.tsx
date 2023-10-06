@@ -7,8 +7,11 @@ import {
   Grid,
   Paper,
   Avatar,
+  Box,
 } from '@mui/material';
 import { Select, MenuItem } from '@mui/material';
+import MenuAppBar from '../common/navbar';
+import { useNavigate } from 'react-router-dom';
 
 
 const Profile = () => {
@@ -19,8 +22,9 @@ const Profile = () => {
     phone:'93456668796',
     role:'Frontend Developer' // Replace with the actual path to your user's avatar image
   });
-  const [age, setAge] = React.useState('');
 
+  const navigate = useNavigate();
+  
   const handleChange = (e:any) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
@@ -34,6 +38,8 @@ const Profile = () => {
   
 
   return (
+    <>
+    <MenuAppBar />
     <Container maxWidth="sm">
       <Paper  sx={{ padding: 5, marginTop:12, border:'1px solid #556cd6', }}>
         <Avatar
@@ -96,34 +102,31 @@ const Profile = () => {
           <MenuItem value="HR">HR</MenuItem>
           <MenuItem value="Manager">Manager</MenuItem>
         </Select>
-
-        {/* <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Age</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={age}
-          label="Age"
-          onChange={handleChange}
-        >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
-        </Select>
-      </FormControl> */}
             </Grid>
           </Grid>
+          <Box sx={{display: 'flex'}}>
           <Button
             type="submit"
             variant="contained"
             color="primary"
-            sx={{ marginTop: 4 }}
+            sx={{ marginTop: 4, marginRight: 2 }}
           >
             Save
           </Button>
+          <Button
+            type="submit"
+            variant="outlined"
+            color="primary"
+            sx={{ marginTop: 4 }}
+            onClick={()=>{navigate("/")}}
+          >
+            Cancel
+          </Button>
+          </Box>
         </form>
       </Paper>
     </Container>
+    </>
   );
 };
 

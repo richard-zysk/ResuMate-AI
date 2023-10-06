@@ -9,7 +9,8 @@ import { useDropzone } from "react-dropzone";
 import { styled } from "@mui/material/styles";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
-import { List } from "@mui/material";
+import { Box, List } from "@mui/material";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 const ListItem = styled("li")(({ theme }) => ({
   margin: theme.spacing(0.5),
@@ -34,18 +35,18 @@ const baseStyle = {
 };
 
 const activeStyle = {
-  borderColor: "#2196f3",
+  borderColor: "#556cd6",
 };
 
 const acceptStyle = {
-  borderColor: "#00e676",
+  borderColor: "#556cd6",
 };
 
 const rejectStyle = {
-  borderColor: "#ff1744",
+  borderColor: "#556cd6",
 };
 
-const maxLength = 30;
+const maxLength = 40;
 
 function nameLengthValidator(file: File) {
   if (file.name.length > maxLength) {
@@ -127,11 +128,13 @@ function DropzoneComponent(props: any) {
   );
 
   const fileRejectionItems = fileRejections.map(({ file, errors }: any) => (
-    <ListItem key={file.path} sx={{color: 'red'}}>
+    <ListItem key={file.path} sx={{ color: "red", fontSize: 14 }}>
       {file.path} - {file.size} bytes
       <List>
         {errors.map((e: any) => (
-          <ListItem key={e.code} sx={{color: 'gray', fontSize: 15}}>{e.message}</ListItem>
+          <ListItem key={e.code} sx={{ color: "gray", fontSize: 13 }}>
+            {e.message}
+          </ListItem>
         ))}
       </List>
     </ListItem>
@@ -149,7 +152,10 @@ function DropzoneComponent(props: any) {
     <section>
       <div {...getRootProps({ style })}>
         <input {...getInputProps()} />
-        <div>Click / Drag and drop your files here....</div>
+        <Box>
+          <AddCircleIcon color="primary" fontSize="large" />
+        </Box>
+        <div>Click/Drag & drop your files.</div>
       </div>
       <aside>
         {thumbs}
