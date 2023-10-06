@@ -12,11 +12,13 @@ import FormGroup from '@mui/material/FormGroup';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import { Link } from '@mui/material';
+import { useAuth } from './auth/authProvider';
 
 export default function MenuAppBar() {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
+  const { logout } = useAuth()
+  
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAuth(event.target.checked);
   };
@@ -28,6 +30,11 @@ export default function MenuAppBar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleLogout = () => {
+    handleClose();
+    logout()
+  }
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -73,7 +80,7 @@ export default function MenuAppBar() {
                 onClose={handleClose}
               >
                 <MenuItem> <Link href="/profile" >Profile</Link></MenuItem>
-                <MenuItem onClick={handleClose}>Logout</MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
             </div>
           )}

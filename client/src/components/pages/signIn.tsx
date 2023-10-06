@@ -11,14 +11,11 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
-import axios from 'axios';
 import { useAuth } from '../auth/authProvider';
 import { apipost } from '../../services/axiosClient';
 
-
-
 export default function SignInSide() {
-  const { setUser } = useAuth()
+  const { login } = useAuth()
 
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,7 +23,7 @@ export default function SignInSide() {
     const data = new FormData(event.currentTarget);
     const response = await apipost("/pdf/login", data);
     console.log(response);
-    setUser(response.data.data)
+    login(response.data.data)
   };
 
   return (

@@ -7,6 +7,7 @@ import { StrictMode } from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
+import { AuthProvider } from "./components/auth/authProvider";
 
 const rootElement = document.getElementById("root");
 const root = ReactDOM.createRoot(rootElement!);
@@ -16,7 +17,9 @@ root.render(
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
