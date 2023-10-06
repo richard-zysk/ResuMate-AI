@@ -47,10 +47,10 @@ export default function MenuAppBar() {
             aria-label="menu"
             sx={{ mr: 2 }}
           >
-            ZYSK
+           
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            RESUVAULT
+            ResuMate.AI
           </Typography>
           {auth && (
             <div>

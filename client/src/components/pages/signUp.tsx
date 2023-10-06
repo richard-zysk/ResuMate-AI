@@ -12,6 +12,12 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
+const styles = {
+    paperContainer: {
+        backgroundImage: `url(${Image})`
+    }
+};
+
 function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -38,20 +44,32 @@ export default function SignUp() {
   };
 
   return (
+    <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            height:'100vh',
+            backgroundImage: 'url(/images/signup-background-1.png)',
+            backgroundRepeat:'no-repeat',
+          }}
+        >
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 15,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            padding:'30px',
+            background:'#fff',
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+          <Avatar sx={{ m: 1, bgcolor: '#00c593' }}>
             <LockOutlinedIcon />
           </Avatar>
-          <Typography component="h1" variant="h5">
+          <Typography component="h1" variant="h5" sx={{color:'#475467'}}>
             Sign up
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
@@ -103,13 +121,13 @@ export default function SignUp() {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 3, mb: 2, }}
             >
               Sign Up
             </Button>
-            <Grid container justifyContent="flex-end">
+            <Grid container justifyContent="flex-end" sx={{alignItems: 'center', justifyContent:'center',}}>
               <Grid item>
-                <Link href="/signin" variant="body2">
+                <Link href="/signin" variant="body2" sx={{color:'#475467'}}>
                   Already have an account? Sign in
                 </Link>
               </Grid>
@@ -118,5 +136,6 @@ export default function SignUp() {
         </Box>
         <Copyright sx={{ mt: 5 }} />
       </Container>
+      </Box>
   );
 }
