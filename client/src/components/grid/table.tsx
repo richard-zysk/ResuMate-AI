@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AlertColor, Box, Button } from "@mui/material";
+import { AlertColor, Box, Button, Chip, Grid, ListItem, Paper } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -17,6 +17,36 @@ import { BASE_URL } from "../../appConstants";
 
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
+  {
+    field: "name",
+    headerName: "Name",
+    width: 150,
+    editable: true,
+  },
+  {
+    field: "email",
+    headerName: "Email",
+    width: 150,
+    editable: true,
+  },
+  {
+    field: "phone",
+    headerName: "Phone",
+    width: 150,
+    editable: true,
+  },
+  {
+    field: "location",
+    headerName: "Present Location",
+    width: 150,
+    editable: true,
+  },
+  {
+    field: "role",
+    headerName: "Suited Role",
+    width: 150,
+    editable: true,
+  },
   {
     field: "resume",
     headerName: "Resume",
@@ -37,32 +67,11 @@ const columns: GridColDef[] = [
     ),
   },
   {
-    field: "firstName",
-    headerName: "First name",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "lastName",
-    headerName: "Last name",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "age",
-    headerName: "Age",
+    field: "score",
+    headerName: "Score",
     type: "number",
     width: 110,
     editable: true,
-  },
-  {
-    field: "fullName",
-    headerName: "Full name",
-    description: "This column has a value getter and is not sortable.",
-    sortable: false,
-    width: 160,
-    valueGetter: (params: GridValueGetterParams) =>
-      `${params.row.firstName || ""} ${params.row.lastName || ""}`,
   },
   {
     field: "status",
@@ -70,21 +79,34 @@ const columns: GridColDef[] = [
     type: "singleSelect",
     valueOptions: ["Rejected", "Accepted", "In Progress", "New"],
   },
+  {
+    field: "skills",
+    headerName: "Skills",
+    width: 400,
+    maxWidth: 800,
+    type: "actions",
+    renderCell: (params: GridRenderCellParams<any, Date>) => {
+      let arr = [] as any;
+      arr = params?.value;
+      return (
+        <Grid container spacing={1}>
+          {arr?.map((data: any) => {
+
+            return (
+              <Grid item >
+                <Chip
+                  label={data}
+                />
+              </Grid>
+            );
+          })}
+        </Grid>
+      )
+    },
+  },
 ];
 
-const rows = [{ id: 1, lastName: "Snow", firstName: "Jon", age: 35 }];
 
-const handleUpload = (e: any) => {
-  const fileReader = new FileReader();
-
-  fileReader.readAsDataURL(e?.target?.files[0]);
-  fileReader.onload = (e) => {
-    console.log("FILE", e?.target?.result);
-    // this.setState((prevState) => ({
-    //     [name]: [...prevState[name], e.target.result]
-    // }));
-  };
-};
 
 interface SnackMessageProps {
   msg: string;
@@ -94,6 +116,7 @@ interface SnackMessageProps {
 export default function Table() {
   const [open, setOpen] = React.useState(false);
   const [snackOpen, setSnackOpen] = React.useState(false);
+  const [data, setData] = React.useState([] as any)
   const [message, setMessage] = React.useState<SnackMessageProps>({
     msg: "uploaded!!",
     color: "success",
@@ -104,95 +127,134 @@ export default function Table() {
     setOpen(false);
   };
 
-  const fetchResumes = async()=>{
-    try{
+  const formatData = (list: any) => {
+    const formattedData = [] as any
+    list?.map((resume: any, index: number) => {
+      formattedData?.push({
+        id: index + 1,
+        isDeleted: resume?.data?.isDeleted,
+        name: resume?.data?.name,
+        email: resume?.data?.email,
+        phone: resume?.data?.phone,
+        role: resume?.data?.role,
+        score: resume?.data?.score,
+        location: resume?.data?.place,
+        skills: resume?.skills
+      })
+    })
+    setData(formattedData)
+  }
+
+  const fetchResumes = async () => {
+    try {
       const data = await apiget('/pdf/list-scores')
-      if(data){
-        console.log("Dta", data)
-        setSnackOpen(true);
-        setMessage({ msg: "uploaded", color: "success" })
+      if (data?.data) {
+        formatData(data?.data)
       }
     }
     catch (err: any) {
       console.log(err);
       setMessage({ msg: "failed", color: "error" })
     }
-    
+
   }
 
-  const fetchEmails = async(email: string, index: number)=>{
-    try{
-      const results = await apipost(`/pdf/generate-score?email=${email}` ,{})
-      if(index === (files.length -1) && results?.status === 201){
-        fetchResumes()
+  const fetchEmails = async (email: string, index: number) => {
+    try {
+      const results = await apipost(`/pdf/generate-score?email=${email}`, {})
+      if (index === (files.length - 1) && results?.status === 201) {
+        setSnackOpen(true);
+        setMessage({ msg: "uploaded", color: "success" })
+        fetchResumes();
       }
     }
-    catch(err:any){
+    catch (err: any) {
       console.log(err);
-      setMessage({ msg: "failed", color: "error" }) 
+      setMessage({ msg: "failed", color: "error" })
     }
   }
 
   const handleSubmit = async () => {
     setOpen(false);
     const formData = new FormData();
-    files.map((file: File)=>{
+    files.map((file: File) => {
       formData.append("files", file)
     })
     try {
       const response = await axios.post(`${BASE_URL}/pdf/extract-texts`, formData, {
         headers: {
           "Content-Type": 'multipart/form-data'
-      }});
-    if (response) {
-      response?.data?.map((file: any, index: number)=>{
-        fetchEmails(file?.text?.email, index)
-      })
+        }
+      });
+      if (response) {
+        response?.data?.map((file: any, index: number) => {
+          fetchEmails(file?.text?.email, index)
+        })
+      }
+    } catch (err: any) {
+      console.log(err);
+      setMessage({ msg: "failed", color: "error" })
     }
-  } catch (err: any) {
-    console.log(err);
-    setMessage({ msg: "failed", color: "error" })
-  }
-};
+  };
 
-const handleClickOpen = () => {
-  setOpen(true);
-};
-return (
-  <Box sx={{ height: 400, width: "100%" }}>
-    <Button variant="contained" component="label" onClick={handleClickOpen}>
-      Upload File
-    </Button>
-    <MaxWidthDialog
-      setOpen={setOpen}
-      open={open}
-      handleClose={handleClose}
-      handleSubmit={handleSubmit}
-      children={<DropzoneComponent files={files} setFiles={setFiles} />}
-    />
-    <DataGrid
-      rows={rows}
-      columns={columns}
-      slots={{
-        toolbar: GridToolbar,
-      }}
-      initialState={{
-        pagination: {
-          paginationModel: {
-            pageSize: 5,
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  React.useEffect(() => {
+    fetchResumes();
+  }, []);
+
+  const rows = data
+
+  return (
+    <Box sx={{ width: "100%" }}>
+      <Button variant="contained" component="label" onClick={handleClickOpen}>
+        Upload File
+      </Button>
+      <MaxWidthDialog
+        setOpen={setOpen}
+        open={open}
+        handleClose={handleClose}
+        handleSubmit={handleSubmit}
+        children={<DropzoneComponent files={files} setFiles={setFiles} />}
+      />
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 50,
+            },
           },
-        },
-      }}
-      pageSizeOptions={[5]}
-      checkboxSelection
-      disableRowSelectionOnClick
-    />
-    <CustomSnackbar
-      open={snackOpen}
-      setOpen={setSnackOpen}
-      message={message.msg}
-      severity={message.color}
-    />
-  </Box>
-);
+        }}
+        pageSizeOptions={[10]}
+        checkboxSelection
+        disableRowSelectionOnClick
+        // getRowHeight={() => 'auto'}
+        components={{
+          NoRowsOverlay: () => (
+            <Box height="100%" alignItems="center" justifyContent="center">
+              No rows in DataGrid
+            </Box>
+          ),
+          NoResultsOverlay: () => (
+            <Box height="100%" alignItems="center" justifyContent="center">
+              Local filter returns no result
+            </Box>
+          )
+        }}
+      />
+      <CustomSnackbar
+        open={snackOpen}
+        setOpen={setSnackOpen}
+        message={message.msg}
+        severity={message.color}
+      />
+    </Box>
+  );
 }
