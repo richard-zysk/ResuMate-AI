@@ -5,26 +5,36 @@ import SignUp from "./components/pages/signUp";
 import { ProtectedRoute } from "./components/auth/protectedRoute";
 import DashBoard from "./components/pages/dashboard";
 import Profile from "./components/pages/profile";
+import SimpleBackdrop from "./components/common/loader";
+import { useAuth } from "./components/auth/authProvider";
 
-
-export default function App() {
+const RouterApp = () => {
   return (
     <Routes>
       <Route path="/" element={
-          // <ProtectedRoute>
-           <DashBoard/>
-          // </ProtectedRoute>
-        } />
+        // <ProtectedRoute>
+        <DashBoard />
+        // </ProtectedRoute>
+      } />
       <Route
         path="/profile"
         element={
           // <ProtectedRoute>
-            <Profile/>
+          <Profile />
           // </ProtectedRoute>
         }
       />
-      <Route path="/signin" element={<SignInSide/>} />
-      <Route path="/signup" element={<SignUp/>} />
+      <Route path="/signin" element={<SignInSide />} />
+      <Route path="/signup" element={<SignUp />} />
     </Routes>
+  )
+}
+export default function App() {
+  const { loading } = useAuth()
+  return (
+    <>
+      {loading && <SimpleBackdrop />}
+      <RouterApp />
+    </>
   );
 }

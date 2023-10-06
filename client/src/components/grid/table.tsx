@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AlertColor, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, Paper, Stack } from "@mui/material";
+import { AlertColor, Autocomplete, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, MenuItem, Paper, Select, SelectChangeEvent, Stack, TextField } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
@@ -29,9 +29,12 @@ interface SnackMessageProps {
 }
 
 export default function Table() {
+  const {loading, setLoading} = useAuth();
   const [open, setOpen] = React.useState(false);
   const [snackOpen, setSnackOpen] = React.useState(false);
   const [data, setData] = React.useState([] as any)
+  const [status, setStatus] =React.useState('')
+  const [comments, setComments] = React.useState('')
   const [message, setMessage] = React.useState<SnackMessageProps>({
     msg: "uploaded!!",
     color: "success",
@@ -46,6 +49,7 @@ export default function Table() {
     const formattedData = [] as any
     list?.map((resume: any, index: number) => {
       formattedData?.push({
+        resumeId: resume?._id,
         id: index + 1,
         isDeleted: resume?.data?.isDeleted,
         name: resume?.data?.name,
@@ -54,10 +58,13 @@ export default function Table() {
         role: resume?.data?.role,
         score: resume?.data?.score,
         location: resume?.data?.place,
-        skills: resume?.skills
+        skills: resume?.skills,
+        status: resume?.status,
+        comments: resume?.comments
       })
     })
     setData(formattedData)
+    setLoading(false)
   }
 
   const fetchResumes = async () => {
@@ -68,6 +75,7 @@ export default function Table() {
       }
     }
     catch (err: any) {
+      setLoading(false)
       console.log(err);
       setMessage({ msg: "failed", color: "error" })
     }
@@ -84,7 +92,7 @@ export default function Table() {
       }
     }
     catch (err: any) {
-      console.log(err);
+      setLoading(false)
       setMessage({ msg: "failed", color: "error" })
     }
   }
@@ -96,6 +104,7 @@ export default function Table() {
       formData.append("files", file)
     })
     try {
+      setLoading(true);
       const response = await axios.post(`${BASE_URL}/pdf/extract-texts`, formData, {
         headers: {
           "Content-Type": 'multipart/form-data'
@@ -107,6 +116,7 @@ export default function Table() {
         })
       }
     } catch (err: any) {
+      setLoading(false)
       console.log(err);
       setMessage({ msg: "failed", color: "error" })
     }
@@ -116,27 +126,36 @@ export default function Table() {
     setOpen(true);
   };
 
-  const handleOpen = async (params: any ) => {
-    try{
-      const response = await apiget('/pdf/list-S3')
-      console.log("DTA", response)
+  const handleOpen = async (params: any) => {
+    try {
+      const email = params?.row?.email
+      const response = await apiget(`/pdf/list-S3?email=${email}`)
+      const url = response?.data?.s3Url
+      if (response) window?.open(url, '_blank')?.focus();
     }
-    catch(err: any){
-      setSnackOpen(err?.data)
+    catch (err: any) {
+      setLoading(false)
+      setSnackOpen(true)
+      setMessage({ msg: "Failed to Open", color: 'error' })
     }
 
   }
 
   const handleDelete = async (params: any) => {
-    try{
-      const response = await apiget('/pdf/list-S3')
+    try {
+      const email = params?.row?.email
+      const response = await apiget(`/pdf/status?email=${email}`)
       console.log("DTA", response)
-      if(response?.status == 201){
+      if (response?.data) {
+        setSnackOpen(true)
+        setMessage({ msg: "Deleted successfully", color: 'success' })
         fetchResumes();
       }
     }
-    catch(err: any){
-      setSnackOpen(err?.data)
+    catch (err: any) {
+      setLoading(false)
+      setSnackOpen(true)
+      setMessage({ msg: "Failed to Delete", color: 'error' })
     }
   }
 
@@ -194,28 +213,58 @@ export default function Table() {
         }
         return (
           <Stack sx={{ width: "100%" }}>
-          <FormLabel>{progress}%</FormLabel>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 10,
-              backgroundColor: `rgb(${color},0.4)`,
-              "& .MuiLinearProgress-bar": {
-                backgroundColor: `rgb(${color})`
-              }
-            }}
-          />
-        </Stack>
-          
+            <FormLabel>{progress}%</FormLabel>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 10,
+                backgroundColor: `rgb(${color},0.4)`,
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: `rgb(${color})`
+                }
+              }}
+            />
+          </Stack>
+
         )
       }
     },
     {
       field: "status",
       headerName: "Status",
-      type: "singleSelect",
-      valueOptions: ["Rejected", "Accepted", "In Progress", "New"],
+      width: 180,
+      renderCell: (params: GridRenderCellParams<any>) => {
+
+        let value = { label: params?.value, value: params?.value };
+        const handleChange = (event: SelectChangeEvent) => {
+          console.log(event.target.value, params?.value);
+        };
+        let options = [{ label: "New", value: "New" },
+        { label: "InProgress", value: "InProgress" },
+        { label: "Shortlisted", value: "Shortlisted" },
+        { label: "OnHold", value: "OnHold" },
+        { label: "Selected", value: "Selected" },
+        { label: "Rejected", value: "Rejected" },
+        { label: "InterviewScheduled", value: "InterviewScheduled" }]
+        return (
+          <Stack sx={{ width: "100%" }}>
+          <Select
+            labelId="demo-simple-select-standard-label"
+            id="demo-simple-select-standard"
+            value={params?.value}
+            defaultValue={params?.value}
+            onChange={handleChange}
+            label="Status"
+            variant="standard"
+          >
+            {options.map((opt: any) => {
+              return (<MenuItem value={opt?.value}>{opt?.label}</MenuItem>)
+            })}
+          </Select>
+          </Stack>
+        )
+      },
     },
     {
       field: "skills",
@@ -229,11 +278,11 @@ export default function Table() {
         return (
           <Grid container spacing={1}>
             {arr?.map((data: any) => {
-  
+
               return (
                 <Grid item >
                   <Chip
-                    label={data}
+                    label={data?.skill}
                   />
                 </Grid>
               );
@@ -242,31 +291,38 @@ export default function Table() {
         )
       },
     },
-    // {
-    //   field: "resume",
-    //   headerName: "Resume",
-    //   sortable: false,
-    //   minWidth: 140,
-    //   editable: false,
-    //   renderCell: (params: GridRenderCellParams<any, Date>) => (
-    //     <strong>
-    //       <Button
-    //         variant="contained"
-    //         size="small"
-    //         style={{ marginLeft: 16 }}
-    //         tabIndex={params.hasFocus ? 0 : -1}
-    //       >
-    //         Open
-    //       </Button>
-    //     </strong>
-    //   ),
-    // },
+    {
+      field: "comments",
+      headerName: "Comments",
+      sortable: false,
+      minWidth: 240,
+      editable: true,
+      renderCell: (params: GridRenderCellParams<any, Date>) => {
+        const handleChange = (event: any) => {
+          console.log(event.target.value, params?.value);
+        };
+        return(
+        <Stack sx={{ width: "100%" }}>
+          <TextField
+          id="outlined-multiline-static"
+          label=""
+          multiline
+          rows={2}
+          variant="outlined"
+          onChange={handleChange}
+          value={params?.value}
+          defaultValue={params?.value}
+        />
+        </Stack>
+      )}
+    },
     {
       field: 'actions',
+      headerName: 'Actions',
       type: 'actions',
       getActions: (params: GridRowParams) => [
-        <GridActionsCellItem icon={<DeleteIcon/>} onClick={(e: any)=>handleDelete(params)} label="Delete" showInMenu/>,
-        <GridActionsCellItem icon={<LaunchIcon/>} onClick={(e: any)=>handleOpen(params)} label="Open" showInMenu />,
+        <GridActionsCellItem icon={<LaunchIcon />} onClick={(e: any) => handleOpen(params)} label="Open" />,
+        <GridActionsCellItem icon={<DeleteIcon />} onClick={(e: any) => handleDelete(params)} label="Delete" />,
       ]
     }
   ];

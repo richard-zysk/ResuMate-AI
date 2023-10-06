@@ -7,10 +7,13 @@ interface IProvider {
     setUser: any;
     login: (data: any) => Promise<void>;
     logout: () => void;
+    loading: boolean;
+    setLoading: any;
 }
 const AuthContext = createContext<IProvider>({} as IProvider);
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useLocalStorage("user", null);
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
   // call this function when you want to authenticate the user
@@ -30,7 +33,9 @@ export const AuthProvider = ({ children }: any) => {
       user,
       setUser,
       login,
-      logout
+      logout,
+      loading,
+      setLoading
     }),
     [user]
   );

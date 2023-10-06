@@ -8,6 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import { AuthProvider } from "./components/auth/authProvider";
+import SimpleBackdrop from "./components/common/loader";
 
 const rootElement = document.getElementById("root");
 const root = ReactDOM.createRoot(rootElement!);
