@@ -1,12 +1,16 @@
 import * as React from "react";
-import { AlertColor, Box, Button, Chip, Grid, ListItem, Paper } from "@mui/material";
+import { AlertColor, Box, Button, Chip, FormLabel, Grid, LinearProgress, ListItem, Paper, Stack } from "@mui/material";
 import {
   DataGrid,
   GridColDef,
   GridValueGetterParams,
   GridToolbar,
   GridRenderCellParams,
+  GridActionsCellItem,
+  GridRowParams,
 } from "@mui/x-data-grid";
+import DeleteIcon from '@mui/icons-material/Delete';
+import LaunchIcon from '@mui/icons-material/Launch';
 import axios from "axios";
 import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
@@ -15,96 +19,7 @@ import { useAuth } from "../auth/authProvider";
 import { apiget, apipost } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
 
-const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 90 },
-  {
-    field: "name",
-    headerName: "Name",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "email",
-    headerName: "Email",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "phone",
-    headerName: "Phone",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "location",
-    headerName: "Present Location",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "role",
-    headerName: "Suited Role",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "resume",
-    headerName: "Resume",
-    sortable: false,
-    minWidth: 140,
-    editable: false,
-    renderCell: (params: GridRenderCellParams<any, Date>) => (
-      <strong>
-        <Button
-          variant="contained"
-          size="small"
-          style={{ marginLeft: 16 }}
-          tabIndex={params.hasFocus ? 0 : -1}
-        >
-          Open
-        </Button>
-      </strong>
-    ),
-  },
-  {
-    field: "score",
-    headerName: "Score",
-    type: "number",
-    width: 110,
-    editable: true,
-  },
-  {
-    field: "status",
-    headerName: "Status",
-    type: "singleSelect",
-    valueOptions: ["Rejected", "Accepted", "In Progress", "New"],
-  },
-  {
-    field: "skills",
-    headerName: "Skills",
-    width: 400,
-    maxWidth: 800,
-    type: "actions",
-    renderCell: (params: GridRenderCellParams<any, Date>) => {
-      let arr = [] as any;
-      arr = params?.value;
-      return (
-        <Grid container spacing={1}>
-          {arr?.map((data: any) => {
 
-            return (
-              <Grid item >
-                <Chip
-                  label={data}
-                />
-              </Grid>
-            );
-          })}
-        </Grid>
-      )
-    },
-  },
-];
 
 
 
@@ -201,10 +116,160 @@ export default function Table() {
     setOpen(true);
   };
 
+  const handleOpen = async (params: any ) => {
+    try{
+      const response = await apiget('/pdf/list-S3')
+      console.log("DTA", response)
+    }
+    catch(err: any){
+      setSnackOpen(err?.data)
+    }
+
+  }
+
+  const handleDelete = async (params: any) => {
+    try{
+      const response = await apiget('/pdf/list-S3')
+      console.log("DTA", response)
+      if(response?.status == 201){
+        fetchResumes();
+      }
+    }
+    catch(err: any){
+      setSnackOpen(err?.data)
+    }
+  }
+
   React.useEffect(() => {
     fetchResumes();
   }, []);
 
+
+  const columns: GridColDef[] = [
+    { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "name",
+      headerName: "Name",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "phone",
+      headerName: "Phone",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "location",
+      headerName: "Present Location",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "role",
+      headerName: "Suited Role",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "score",
+      headerName: "Score",
+      renderCell: (params: GridRenderCellParams<any>) => {
+        let color = "0,255,0"
+        let progress = params?.value
+        if (params?.value <= 25) {
+          color = "255,0,0"
+        } else if (params?.value <= 50) {
+          color = "255,255,0"
+        } else if (params?.value <= 75) {
+          color = "0,0,255"
+        } else {
+          color = "0,255,0";
+        }
+        return (
+          <Stack sx={{ width: "100%" }}>
+          <FormLabel>{progress}%</FormLabel>
+          <LinearProgress
+            variant="determinate"
+            value={progress}
+            sx={{
+              height: 10,
+              backgroundColor: `rgb(${color},0.4)`,
+              "& .MuiLinearProgress-bar": {
+                backgroundColor: `rgb(${color})`
+              }
+            }}
+          />
+        </Stack>
+          
+        )
+      }
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      type: "singleSelect",
+      valueOptions: ["Rejected", "Accepted", "In Progress", "New"],
+    },
+    {
+      field: "skills",
+      headerName: "Skills",
+      width: 400,
+      maxWidth: 800,
+      type: "actions",
+      renderCell: (params: GridRenderCellParams<any>) => {
+        let arr = [] as any;
+        arr = params?.value;
+        return (
+          <Grid container spacing={1}>
+            {arr?.map((data: any) => {
+  
+              return (
+                <Grid item >
+                  <Chip
+                    label={data}
+                  />
+                </Grid>
+              );
+            })}
+          </Grid>
+        )
+      },
+    },
+    // {
+    //   field: "resume",
+    //   headerName: "Resume",
+    //   sortable: false,
+    //   minWidth: 140,
+    //   editable: false,
+    //   renderCell: (params: GridRenderCellParams<any, Date>) => (
+    //     <strong>
+    //       <Button
+    //         variant="contained"
+    //         size="small"
+    //         style={{ marginLeft: 16 }}
+    //         tabIndex={params.hasFocus ? 0 : -1}
+    //       >
+    //         Open
+    //       </Button>
+    //     </strong>
+    //   ),
+    // },
+    {
+      field: 'actions',
+      type: 'actions',
+      getActions: (params: GridRowParams) => [
+        <GridActionsCellItem icon={<DeleteIcon/>} onClick={(e: any)=>handleDelete(params)} label="Delete" showInMenu/>,
+        <GridActionsCellItem icon={<LaunchIcon/>} onClick={(e: any)=>handleOpen(params)} label="Open" showInMenu />,
+      ]
+    }
+  ];
   const rows = data
 
   return (
@@ -235,7 +300,7 @@ export default function Table() {
         pageSizeOptions={[10]}
         checkboxSelection
         disableRowSelectionOnClick
-        // getRowHeight={() => 'auto'}
+        getRowHeight={() => 'auto'}
         components={{
           NoRowsOverlay: () => (
             <Box height="100%" alignItems="center" justifyContent="center">
@@ -258,3 +323,5 @@ export default function Table() {
     </Box>
   );
 }
+
+
