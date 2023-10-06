@@ -12,7 +12,7 @@ import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
 import CustomSnackbar from "../common/snackBar";
 import { useAuth } from "../auth/authProvider";
-import { apiget } from "../../services/axiosClient";
+import { apiget, apipost } from "../../services/axiosClient";
 
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
@@ -85,35 +85,38 @@ const handleUpload = (e: any) => {
   };
 };
 
-
 interface SnackMessageProps {
-    msg: string;
-    color: AlertColor;
+  msg: string;
+  color: AlertColor;
 }
-
-
 
 export default function Table() {
   const [open, setOpen] = React.useState(false);
   const [snackOpen, setSnackOpen] = React.useState(false);
-  const [message, setMessage] = React.useState<SnackMessageProps>({msg: 'uploaded!!', color: 'success'});
+  const [message, setMessage] = React.useState<SnackMessageProps>({
+    msg: "uploaded!!",
+    color: "success",
+  });
   const [files, setFiles] = React.useState([]);
-
-    React.useEffect(() => {
-      async function demo() {
-          const response = await apiget("/pdf/fetch-emails");
-          console.log(response.data);
-        }
-        demo();
-    }, []);
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setOpen(false);
-    setSnackOpen(true);
+    const data = { files: files };
+    try {
+      const response = await apipost("/pdf/extract-texts", data);
+      if(response){
+        console.log(response)
+        setSnackOpen(true);
+        setMessage({msg: "uploaded", color: "success"})
+      }
+    } catch (err: any) {
+      console.log(err);
+      setMessage({msg: "failed", color: "error"})
+    }
   };
 
   const handleClickOpen = () => {
