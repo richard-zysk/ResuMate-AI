@@ -12,6 +12,8 @@ import {
   ListItem,
   MenuItem,
   Paper,
+  Popover,
+  Popper,
   Select,
   SelectChangeEvent,
   Stack,
@@ -33,24 +35,27 @@ import {
 } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LaunchIcon from "@mui/icons-material/Launch";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
 import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
 import CustomSnackbar from "../common/snackBar";
 import { useAuth } from "../auth/authProvider";
-import { apidelete, apiget, apipost } from "../../services/axiosClient";
+import { apidelete, apiget, apipost, apiput } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
 import ReactWordcloud from "react-wordcloud";
 
 export default function Table() {
-  const { loading, snackOpen, setSnackOpen, message, setLoading, setMessage } = useAuth();
+  const { loading, snackOpen, setSnackOpen, message, setLoading, setMessage } =
+    useAuth();
   const [open, setOpen] = React.useState(false);
-  const [selectedParams, setSelectedParams] = React.useState<any>(null)
-  const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [selectedParams, setSelectedParams] = React.useState<any>(null);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [data, setData] = React.useState([] as any);
   const [status, setStatus] = React.useState("");
   const [comments, setComments] = React.useState("");
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorElName, setAnchorElName] = React.useState<null | HTMLElement>(null);
   const [files, setFiles] = React.useState([] as any);
 
   const handleClose = () => {
@@ -88,7 +93,7 @@ export default function Table() {
       }
     } catch (err: any) {
       setLoading(false);
-      setSnackOpen(true)
+      setSnackOpen(true);
       setMessage({ msg: "failed", color: "error" });
     }
   };
@@ -96,7 +101,7 @@ export default function Table() {
   const fetchEmails = async (email: string, index: number) => {
     try {
       const results = await apipost(`/pdf/generate-score?email=${email}`, {});
-      if (index === files.length - 1 && results?.status === 201) {
+      if (index === files.length - 1 && results?.data) {
         setSnackOpen(true);
         setMessage({ msg: "uploaded files!!", color: "success" });
         fetchResumes();
@@ -134,14 +139,14 @@ export default function Table() {
     } catch (err: any) {
       setLoading(false);
       console.log(err);
-      setSnackOpen(true)
+      setSnackOpen(true);
       setMessage({ msg: "failed", color: "error" });
     }
   };
 
   const handleClickOpen = () => {
     setOpen(true);
-    setFiles([])
+    setFiles([]);
   };
 
   const handleOpen = async (params: any) => {
@@ -158,7 +163,7 @@ export default function Table() {
   };
 
   const handleDelete = async () => {
-    setDeleteOpen(false)
+    setDeleteOpen(false);
     try {
       const email = selectedParams?.row?.email;
       const response = await apidelete(`/pdf/delete-user-score?email=${email}`);
@@ -176,8 +181,8 @@ export default function Table() {
 
   const handleDeleteConfirm = (params: any) => {
     setDeleteOpen(true);
-    setSelectedParams(params)
-  }
+    setSelectedParams(params);
+  };
 
   React.useEffect(() => {
     fetchResumes();
@@ -190,29 +195,69 @@ export default function Table() {
       headerName: "Name",
       width: 150,
       renderCell: (params: GridRenderCellParams<any>) => {
-        const words = [
-          {
-            text: "told",
-            value: 64,
-          },
-          {
-            text: "mistake",
-            value: 11,
-          },
-          {
-            text: "thought",
-            value: 16,
-          },
-          {
-            text: "bad",
-            value: 17,
-          },
-        ];
+        const skills = params?.row?.skills.map((skill: any)=>({
+          text: skill?.skill,
+          value:skill?.value
+        }))
+        // const words = [
+        //   {
+        //     text: "told",
+        //     value: 64,
+        //   },
+        //   {
+        //     text: "mistake",
+        //     value: 11,
+        //   },
+        //   {
+        //     text: "thought",
+        //     value: 16,
+        //   },
+        //   {
+        //     text: "bad",
+        //     value: 17,
+        //   },
+        // ];
+        const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
+          setAnchorElName(event.currentTarget);
+        };
+      
+        const handlePopoverClose = () => {
+          setAnchorElName(null);
+        };
+      
+        const openName = Boolean(anchorEl);
         return (
-          <>
-            <>{params?.value}</>
-            {/* // </LightTooltip> */}
-          </>
+          <div>
+          <Typography
+            aria-owns={openName ? 'mouse-over-popover' : undefined}
+            aria-haspopup="true"
+            onMouseEnter={handlePopoverOpen}
+            onMouseLeave={handlePopoverClose}
+          >
+            {params?.value}
+          </Typography>
+          <Popover
+            id="mouse-over-popover"
+            sx={{
+              pointerEvents: 'none',
+            }}
+            open={openName}
+            anchorEl={anchorElName}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}
+            onClose={handlePopoverClose}
+            disableRestoreFocus
+          >
+            {/* <ReactWordcloud words={skills}/> */}
+            <Typography sx={{ p: 1 }}>{params?.value}</Typography>
+          </Popover>
+        </div>
         );
       },
     },
@@ -220,19 +265,19 @@ export default function Table() {
       field: "email",
       headerName: "Email",
       width: 150,
-      editable: true,
+      maxWidth: 300,
     },
     {
       field: "phone",
       headerName: "Phone",
       width: 150,
-      editable: true,
+      maxWidth: 300,
     },
     {
       field: "location",
       headerName: "Present Location",
       width: 150,
-      editable: true,
+      maxWidth: 300,
     },
     {
       field: "role",
@@ -244,17 +289,15 @@ export default function Table() {
       field: "score",
       headerName: "Score",
       renderCell: (params: GridRenderCellParams<any>) => {
-        let color = "0,255,0";
+        let color = "0,0,0";
         let progress = params?.value;
-        if (params?.value <= 25) {
-          color = "255,0,0";
-        } else if (params?.value <= 50) {
-          color = "255,255,0";
-        } else if (params?.value <= 75) {
-          color = "0,0,255";
-        } else {
-          color = "0,255,0";
-        }
+        if (params?.value >= 25) {
+          color = "230, 0, 0";
+        } else if (params?.value >= 50) {
+          color = "255, 153, 51";
+        } else if (params?.value >= 75) {
+          color = "0, 153, 51";
+        } 
         return (
           <Stack sx={{ width: "100%" }}>
             <FormLabel>{progress}%</FormLabel>
@@ -278,9 +321,24 @@ export default function Table() {
       headerName: "Status",
       width: 180,
       renderCell: (params: GridRenderCellParams<any>) => {
-        let value = { label: params?.value, value: params?.value };
-        const handleChange = (event: SelectChangeEvent) => {
-          console.log(event.target.value, params?.value);
+        const handleChange = async (event: SelectChangeEvent) => {
+          setStatus(event?.target?.value);
+          const data = {
+            email: params?.row?.email,
+            status: event?.target?.value,
+            comments: params?.row?.comments,
+          };
+          try {
+            const response = await apiput("/pdf/update-status/comments", data);
+            console.log("response");
+            if (response) {
+              setSnackOpen(true);
+              setMessage({ msg: "Status updated", color: "success" });
+            }
+          } catch (err) {
+            setSnackOpen(true);
+            setMessage({ msg: "Could not update status", color: "error" });
+          }
         };
         let options = [
           { label: "New", value: "New" },
@@ -296,7 +354,7 @@ export default function Table() {
             <Select
               labelId="demo-simple-select-standard-label"
               id="demo-simple-select-standard"
-              value={params?.value}
+              value={status != "" ? status : params?.value}
               defaultValue={params?.value}
               onChange={handleChange}
               label="Status"
@@ -339,21 +397,57 @@ export default function Table() {
       minWidth: 240,
       editable: true,
       renderCell: (params: GridRenderCellParams<any, Date>) => {
-        const handleChange = (event: any) => {
-          console.log(event.target.value, params?.value);
+        const handleChange = async (
+          event: any
+        ) => {
+          console.log(event)
+          setComments(event?.target?.value);
+          const data = {
+            email: params?.row?.email,
+            status: params?.row?.status,
+            comments: event?.target?.value,
+          };
+          try {
+            const response = await apiput("/pdf/update-status/comments", data);
+            console.log("response");
+            if (response) {
+              setSnackOpen(true);
+              setMessage({ msg: "Comments updated", color: "success" });
+            }
+          } catch (err) {
+            setSnackOpen(true);
+            setMessage({ msg: "Could not update comments", color: "error" });
+          }
         };
+        const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+          setAnchorEl(anchorEl ? null : event.currentTarget);
+        };
+
+        const openComments = Boolean(anchorEl);
+        const id = openComments ? "simple-popper" : undefined;
         return (
           <Stack sx={{ width: "100%" }}>
-            <TextField
-              id="outlined-multiline-static"
-              label=""
-              multiline
-              rows={2}
-              variant="outlined"
-              onChange={handleChange}
-              value={params?.value}
-              defaultValue={params?.value}
-            />
+            <div>
+              <Button onClick={handleClick}>Add Comments</Button>
+              <Popper id={id} open={openComments} anchorEl={anchorEl}>
+                <Box
+                  sx={{ border: 1, p: 1, bgcolor: "background.paper" }}
+                  component="form"
+                  onSubmit={handleChange}
+                >
+                  <TextField
+                    id="outlined-multiline-static"
+                    label=""
+                    multiline
+                    rows={2}
+                    variant="outlined"
+                    value={comments != "" ? comments : params?.value}
+                    defaultValue={params?.value}
+                  />
+                  <Button type="submit">Add</Button>
+                </Box>
+              </Popper>
+            </div>
           </Stack>
         );
       },
@@ -380,8 +474,20 @@ export default function Table() {
 
   return (
     <Box sx={{ width: "100%", py: 5, px: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "end", justifyContent: "end", py: 2}}>
-        <Button variant="contained" component="label" onClick={handleClickOpen} startIcon={<UploadFileIcon />}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "end",
+          justifyContent: "end",
+          py: 2,
+        }}
+      >
+        <Button
+          variant="contained"
+          component="label"
+          onClick={handleClickOpen}
+          startIcon={<UploadFileIcon />}
+        >
           Upload Files
         </Button>
       </Box>
@@ -422,18 +528,23 @@ export default function Table() {
           ),
         }}
       />
-            <MaxWidthDialog
+      <MaxWidthDialog
         setOpen={setDeleteOpen}
         open={deleteOpen}
-        handleClose={()=>{setDeleteOpen(false)}}
+        handleClose={() => {
+          setDeleteOpen(false);
+        }}
         handleSubmit={handleDelete}
         title=" Are you sure you want to delete?"
         primaryButtonText="Delete"
-        children={<Box ><DialogContentText>
-          This resume will be deleted permanently. Please confirm your action.
-        </DialogContentText>
-           
-       </Box>}
+        children={
+          <Box>
+            <DialogContentText>
+              This resume will be deleted permanently. Please confirm your
+              action.
+            </DialogContentText>
+          </Box>
+        }
       />
     </Box>
   );
