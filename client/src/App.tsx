@@ -8,6 +8,7 @@ import Profile from "./components/pages/profile";
 import SimpleBackdrop from "./components/common/loader";
 import { useAuth } from "./components/auth/authProvider";
 import CustomSnackbar from "./components/common/snackBar";
+import ErrorPage from "./components/pages/notFound";
 
 const RouterApp = () => {
   return (
@@ -27,6 +28,7 @@ const RouterApp = () => {
       />
       <Route path="/signin" element={<SignInSide />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="*" element={<ErrorPage/>} />
     </Routes>
   )
 }

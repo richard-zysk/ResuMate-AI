@@ -1,11 +1,10 @@
 export const colors = [
+  "#FFE59A", // Light Yellow
     "#FFC6A5", // Light Red
     "#AEDFFF", // Light Blue
-    "#A4EFA1", // Light Green
-    "#D1BBE4", // Light Purple
-    "#FFE59A", // Light Yellow
-    "#FFD8B8", // Light Orange
     "#A2E3E0", // Light Teal
+    "#D1BBE4", // Light Purple
+    "#FFD8B8", // Light Orange
     "#F5B7B1", // Light Crimson
     "#C5B3F2", // Light Indigo
     "#A4EFA1", // Light Green

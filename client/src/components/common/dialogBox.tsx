@@ -48,8 +48,8 @@ export default function MaxWidthDialog(props: DialogBoxProps) {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={handleClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit}>{ primaryButtonText ?? 'Submit' }</Button>
+          <Button variant="outlined" onClick={handleClose} color='primary'>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit} color='primary'>{ primaryButtonText ?? 'Submit' }</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
