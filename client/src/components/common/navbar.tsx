@@ -47,7 +47,7 @@ export default function MenuAppBar() {
           >
            
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={()=>{navigate("/")}}>
+          <Typography variant="h5"  sx={{ flexGrow: 1, fontStyle: 'italic' }} onClick={()=>{navigate("/")}} >
             ResuMate.AI
           </Typography>
           {auth && (

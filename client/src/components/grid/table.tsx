@@ -6,8 +6,11 @@ import {
   Button,
   Chip,
   DialogContentText,
+  Divider,
   FormLabel,
   Grid,
+  IconButton,
+  InputBase,
   LinearProgress,
   ListItem,
   MenuItem,
@@ -33,9 +36,10 @@ import {
   GridActionsCellItem,
   GridRowParams,
 } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LaunchIcon from "@mui/icons-material/Launch";
+import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import DoneOutlinedIcon from "@mui/icons-material/DoneOutlined";
 import axios from "axios";
 import MaxWidthDialog from "../common/dialogBox";
 import DropzoneComponent from "../common/dropzone";
@@ -45,21 +49,26 @@ import { apidelete, apiget, apipost, apiput } from "../../services/axiosClient";
 import { BASE_URL } from "../../appConstants";
 import ReactWordcloud from "react-wordcloud";
 import SearchChat from "../common/searchChat";
+import { ChipColors, colors } from "../../services/colorsUtils";
 
 export default function Table() {
   const { loading, snackOpen, setSnackOpen, message, setLoading, setMessage } =
     useAuth();
   const [open, setOpen] = React.useState(false);
+  const [files, setFiles] = React.useState([] as any);
   const [selectedParams, setSelectedParams] = React.useState<any>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [data, setData] = React.useState([] as any);
-  const [status, setStatus] = React.useState("");
-  const [comments, setComments] = React.useState("");
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [status, setStatus] = React.useState(
+    Array.from({ length: files?.length }, () => "")
+  );
+  const [comments, setComments] = React.useState(
+    Array.from({ length: files?.length }, () => "")
+  );
+  const [anchorEl, setAnchorEl] = React.useState<any>(null);
   const [anchorElName, setAnchorElName] = React.useState<null | HTMLElement>(
     null
   );
-  const [files, setFiles] = React.useState([] as any);
 
   const handleClose = () => {
     setOpen(false);
@@ -107,8 +116,8 @@ export default function Table() {
       if (index === files.length - 1 && results?.data) {
         setSnackOpen(true);
         setMessage({ msg: "uploaded files!!", color: "success" });
-        fetchResumes();
       }
+      return results?.data;
     } catch (err: any) {
       setLoading(false);
       setSnackOpen(true);
@@ -134,9 +143,19 @@ export default function Table() {
         }
       );
       if (response) {
-        response?.data?.map((file: any, index: number) => {
-          fetchEmails(file?.text?.email, index);
-        });
+        const emailPromises = response?.data?.map(
+          (file: any, index: number) => {
+            return fetchEmails(file?.text?.email, index);
+          }
+        );
+
+        // Wait for all emailPromises to complete
+        const emailsResults = await Promise.all(emailPromises);
+
+        // Check if all email fetches were successful before calling fetchResumes
+        if (emailsResults.every((result) => result !== null)) {
+          await fetchResumes();
+        }
         setFiles([]);
       }
     } catch (err: any) {
@@ -167,6 +186,7 @@ export default function Table() {
 
   const handleDelete = async () => {
     setDeleteOpen(false);
+    setLoading(true);
     try {
       const email = selectedParams?.row?.email;
       const response = await apidelete(`/pdf/delete-user-score?email=${email}`);
@@ -174,6 +194,7 @@ export default function Table() {
         setSnackOpen(true);
         setMessage({ msg: "Deleted successfully", color: "success" });
         fetchResumes();
+        setLoading(false);
       }
     } catch (err: any) {
       setLoading(false);
@@ -192,34 +213,25 @@ export default function Table() {
   }, []);
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "id",
+      headerName: "ID",
+      width: 90,
+      headerClassName: "columnHeader",
+      headerAlign: "center",
+    },
     {
       field: "name",
       headerName: "Name",
       width: 150,
+      headerClassName: "columnHeader",
+      headerAlign: "center",
       renderCell: (params: GridRenderCellParams<any>) => {
         const skills = params?.row?.skills.map((skill: any) => ({
           text: skill?.skill,
-          value: skill?.value,
+          value: skill?.score,
         }));
-        // const words = [
-        //   {
-        //     text: "told",
-        //     value: 64,
-        //   },
-        //   {
-        //     text: "mistake",
-        //     value: 11,
-        //   },
-        //   {
-        //     text: "thought",
-        //     value: 16,
-        //   },
-        //   {
-        //     text: "bad",
-        //     value: 17,
-        //   },
-        // ];
+  
         const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
           setAnchorElName(event.currentTarget);
         };
@@ -257,7 +269,7 @@ export default function Table() {
               onClose={handlePopoverClose}
               disableRestoreFocus
             >
-              {/* <ReactWordcloud words={skills}/> */}
+              <ReactWordcloud words={skills} />
               <Typography sx={{ p: 1 }}>{params?.value}</Typography>
             </Popover>
           </div>
@@ -267,8 +279,8 @@ export default function Table() {
     {
       field: "email",
       headerName: "Email",
-      width: 150,
-      maxWidth: 300,
+      width: 300,
+      maxWidth: 400,
     },
     {
       field: "phone",
@@ -294,20 +306,21 @@ export default function Table() {
       renderCell: (params: GridRenderCellParams<any>) => {
         let color = "0,0,0";
         let progress = params?.value;
-        if (params?.value >= 25) {
-          color = "230, 0, 0";
+        if (params?.value >= 75) {
+          color = "0, 153, 51";
         } else if (params?.value >= 50) {
           color = "255, 153, 51";
-        } else if (params?.value >= 75) {
-          color = "0, 153, 51";
+        } else {
+          color = "230, 0, 0";
         }
         return (
           <Stack sx={{ width: "100%" }}>
-            <FormLabel>{progress}%</FormLabel>
+            <FormLabel sx={{ fontSize: 12 }}>{progress}%</FormLabel>
             <LinearProgress
               variant="determinate"
               value={progress}
               sx={{
+                borderRadius: 5,
                 height: 10,
                 backgroundColor: `rgb(${color},0.4)`,
                 "& .MuiLinearProgress-bar": {
@@ -322,10 +335,15 @@ export default function Table() {
     {
       field: "status",
       headerName: "Status",
-      width: 180,
+      width: 250,
       renderCell: (params: GridRenderCellParams<any>) => {
-        const handleChange = async (event: SelectChangeEvent) => {
-          setStatus(event?.target?.value);
+        const handleChange = async (
+          event: SelectChangeEvent,
+          index: number
+        ) => {
+          const newStatuses = [...status];
+          newStatuses[index] = event.target.value;
+          setStatus(newStatuses);
           const data = {
             email: params?.row?.email,
             status: event?.target?.value,
@@ -333,7 +351,6 @@ export default function Table() {
           };
           try {
             const response = await apiput("/pdf/update-status/comments", data);
-            console.log("response");
             if (response) {
               setSnackOpen(true);
               setMessage({ msg: "Status updated", color: "success" });
@@ -357,11 +374,19 @@ export default function Table() {
             <Select
               labelId="demo-simple-select-standard-label"
               id="demo-simple-select-standard"
-              value={status != "" ? status : params?.value}
+              value={status[params?.row?.id - 1]}
               defaultValue={params?.value}
-              onChange={handleChange}
+              onChange={(event) => handleChange(event, params?.row?.id - 1)}
               label="Status"
-              variant="standard"
+              variant="outlined"
+              color="secondary"
+              sx={{
+                p: 0,
+                m: 1,
+                borderRadius: 5,
+                height: 30,
+                borderColor: "#556cd6",
+              }}
             >
               {options.map((opt: any) => {
                 return <MenuItem value={opt?.value}>{opt?.label}</MenuItem>;
@@ -374,18 +399,26 @@ export default function Table() {
     {
       field: "skills",
       headerName: "Skills",
-      width: 400,
+      width: 300,
       maxWidth: 800,
       type: "actions",
       renderCell: (params: GridRenderCellParams<any>) => {
         let arr = [] as any;
-        arr = params?.value;
+        arr = params?.value
+          ?.sort((a: any, b: any) => b?.score - a?.score)
+          ?.slice(0, 4);
         return (
           <Grid container spacing={1}>
-            {arr?.map((data: any) => {
+            {arr?.map((data: any, index: number) => {
               return (
                 <Grid item>
-                  <Chip label={data?.skill} />
+                  <Chip
+                    label={data?.skill}
+                    sx={{
+                      background: colors[index % colors.length],
+                      borderColor: ChipColors[index]?.darkColor,
+                    }}
+                  />
                 </Grid>
               );
             })}
@@ -396,13 +429,12 @@ export default function Table() {
     {
       field: "comments",
       headerName: "Comments",
-      sortable: false,
       minWidth: 240,
-      editable: true,
       renderCell: (params: GridRenderCellParams<any, Date>) => {
-        const handleChange = async (event: any) => {
-          console.log(event);
-          setComments(event?.target?.value);
+        const handleChange = async (event: any, index: number) => {
+          const newComments = [...comments];
+          newComments[index] = event.target.value;
+          setComments(newComments);
           const data = {
             email: params?.row?.email,
             status: params?.row?.status,
@@ -410,7 +442,6 @@ export default function Table() {
           };
           try {
             const response = await apiput("/pdf/update-status/comments", data);
-            console.log("response");
             if (response) {
               setSnackOpen(true);
               setMessage({ msg: "Comments updated", color: "success" });
@@ -420,35 +451,33 @@ export default function Table() {
             setMessage({ msg: "Could not update comments", color: "error" });
           }
         };
-        const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-          setAnchorEl(anchorEl ? null : event.currentTarget);
-        };
-
-        const openComments = Boolean(anchorEl);
-        const id = openComments ? "simple-popper" : undefined;
         return (
           <Stack sx={{ width: "100%" }}>
-            <div>
-              <Button onClick={handleClick}>Add Comments</Button>
-              <Popper id={id} open={openComments} anchorEl={anchorEl}>
-                <Box
-                  sx={{ border: 1, p: 1, bgcolor: "background.paper" }}
-                  component="form"
-                  onSubmit={handleChange}
-                >
-                  <TextField
-                    id="outlined-multiline-static"
-                    label=""
-                    multiline
-                    rows={2}
-                    variant="outlined"
-                    value={comments != "" ? comments : params?.value}
-                    defaultValue={params?.value}
-                  />
-                  <Button type="submit">Add</Button>
-                </Box>
-              </Popper>
-            </div>
+            <Paper
+              sx={{
+                p: "2px 4px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <TextField
+                sx={{ ml: 1, flex: 1, border: "none !important" }}
+                inputProps={{ "aria-label": "add comments" }}
+                multiline
+                rows={2}
+                variant="standard"
+                value={comments[params?.row?.id - 1]}
+                defaultValue={params?.value}
+              />
+              <IconButton
+                type="submit"
+                sx={{ p: "10px" }}
+                aria-label="submit"
+                onClick={(event) => handleChange(event, params?.row?.id - 1)}
+              >
+                <DoneOutlinedIcon color="success" />
+              </IconButton>
+            </Paper>
           </Stack>
         );
       },
@@ -460,12 +489,12 @@ export default function Table() {
       type: "actions",
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
-          icon={<LaunchIcon />}
+          icon={<RemoveRedEyeOutlinedIcon color="primary" />}
           onClick={(e: any) => handleOpen(params)}
           label="Open"
         />,
         <GridActionsCellItem
-          icon={<DeleteIcon />}
+          icon={<DeleteForeverOutlinedIcon color="error" />}
           onClick={(e: any) => handleDeleteConfirm(params)}
           label="Delete"
         />,
@@ -475,27 +504,36 @@ export default function Table() {
   const rows = data;
 
   return (
-    <Box sx={{ width: "100%", py: 5, px: 2 }}>
+    <Box
+      sx={{
+        width: "100%",
+        py: 5,
+        px: 2,
+        "& .column--header": {
+          backgroundColor: "rgba(255, 7, 0, 0.55)",
+        },
+      }}
+    >
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          alignContent: 'center',
+          alignContent: "center",
           py: 2,
         }}
       >
         <Button
           variant="contained"
           component="label"
-          color='secondary'
+          color="secondary"
           onClick={handleClickOpen}
           startIcon={<UploadFileIcon />}
         >
           Upload Files
         </Button>
         <Box>
-          <SearchChat />
+          <SearchChat setFiles={setFiles} />
         </Box>
       </Box>
       <MaxWidthDialog
@@ -518,8 +556,26 @@ export default function Table() {
               pageSize: 50,
             },
           },
+          columns: {
+            columnVisibilityModel: {
+              // Hide columns status and traderName, the other columns will remain visible
+              status: false,
+              role: false,
+            },
+          },
         }}
         pageSizeOptions={[10]}
+        sx={{
+          "&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell": {
+            py: 1,
+          },
+          "&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell": {
+            py: "15px",
+          },
+          "&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell": {
+            py: "22px",
+          },
+        }}
         // checkboxSelection
         disableRowSelectionOnClick
         getRowHeight={() => "auto"}
@@ -543,6 +599,7 @@ export default function Table() {
           setDeleteOpen(false);
         }}
         handleSubmit={handleDelete}
+        sizeSmall={true}
         title=" Are you sure you want to delete?"
         primaryButtonText="Delete"
         children={

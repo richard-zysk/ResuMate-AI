@@ -15,12 +15,13 @@ interface DialogBoxProps {
   handleSubmit: any;
   title?: string;
   primaryButtonText?: string;
+  sizeSmall?: boolean;
 }
 
 export default function MaxWidthDialog(props: DialogBoxProps) {
-  const { open, setOpen, children, handleClose, handleSubmit, primaryButtonText, title } = props;
+  const { open, setOpen, children, handleClose, handleSubmit, primaryButtonText, title, sizeSmall } = props;
   const [fullWidth, setFullWidth] = React.useState(true);
-  const [maxWidth, setMaxWidth] = React.useState<DialogProps["maxWidth"]>("md");
+  const [maxWidth, setMaxWidth] = React.useState<DialogProps["maxWidth"]>(sizeSmall ?'sm' : 'md');
 
   return (
     <React.Fragment>

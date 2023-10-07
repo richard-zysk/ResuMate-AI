@@ -14,22 +14,30 @@ import { apipost } from '../../services/axiosClient';
 interface modalProps {
     open: boolean;
     setOpen: any;
+    setFiles: any;
 }
 export default function SearchModal(props: modalProps) {
-const { open, setOpen} = props;
-const { setMessage, setSnackOpen} = useAuth();
+const { open, setOpen, setFiles} = props;
+const { setMessage, setSnackOpen, setLoading, } = useAuth();
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: any) => {
+    setOpen(false);
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const data = { question : event?.target?.value}
+    setLoading(true)
     try {
-    //   const response = await apipost("/pdf/login", data);
-      console.log(event.currentTarget);
+      const response = await apipost("/pdf/chat-bot", data);
+      console.log(response);
+      if(response){
+        setLoading(false);
+        setFiles(response?.data?.candidatesData)
+      }
     } catch (err: any) {
+      setLoading(false)
       console.log(err);
       setSnackOpen(true);
       setMessage({ msg: "Not able to search now. Please try again", color: "error" })
