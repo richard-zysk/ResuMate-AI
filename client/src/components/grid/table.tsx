@@ -349,7 +349,7 @@ export default function Table() {
     {
       field: "status",
       headerName: "Status",
-      width: 250,
+      width: 180,
       headerClassName: "columnHeader",
       headerAlign: "left",
       renderCell: (params: GridRenderCellParams<any>) => {
@@ -383,7 +383,7 @@ export default function Table() {
           { label: "OnHold", value: "OnHold" },
           { label: "Selected", value: "Selected" },
           { label: "Rejected", value: "Rejected" },
-          { label: "InterviewScheduled", value: "InterviewScheduled" },
+          { label: "Scheduled", value: "InterviewScheduled" },
         ];
         return (
           <Stack sx={{ width: "100%" }}>
@@ -599,8 +599,9 @@ export default function Table() {
           columns: {
             columnVisibilityModel: {
               // Hide columns status and traderName, the other columns will remain visible
-              status: false,
-              role: false,
+              comments: false,
+              status: true,
+              role: true,
             },
           },
         }}
