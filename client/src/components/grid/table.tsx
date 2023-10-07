@@ -7,6 +7,7 @@ import {
   Chip,
   DialogContentText,
   Divider,
+  Fab,
   FormLabel,
   Grid,
   IconButton,
@@ -59,6 +60,9 @@ export default function Table() {
   const [selectedParams, setSelectedParams] = React.useState<any>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [data, setData] = React.useState([] as any);
+  const [icon, setIcon] = React.useState(
+    Array.from({ length: files?.length }, () => false)
+  );
   const [status, setStatus] = React.useState(
     Array.from({ length: files?.length }, () => "")
   );
@@ -209,6 +213,7 @@ export default function Table() {
   };
 
   React.useEffect(() => {
+    setLoading(true);
     fetchResumes();
   }, []);
 
@@ -218,20 +223,20 @@ export default function Table() {
       headerName: "ID",
       width: 90,
       headerClassName: "columnHeader",
-      headerAlign: "center",
+      headerAlign: "left",
     },
     {
       field: "name",
       headerName: "Name",
       width: 150,
       headerClassName: "columnHeader",
-      headerAlign: "center",
+      headerAlign: "left",
       renderCell: (params: GridRenderCellParams<any>) => {
         const skills = params?.row?.skills.map((skill: any) => ({
           text: skill?.skill,
           value: skill?.score,
         }));
-  
+
         const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
           setAnchorElName(event.currentTarget);
         };
@@ -281,33 +286,42 @@ export default function Table() {
       headerName: "Email",
       width: 300,
       maxWidth: 400,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
     },
     {
       field: "phone",
       headerName: "Phone",
       width: 150,
       maxWidth: 300,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
     },
     {
       field: "location",
       headerName: "Present Location",
       width: 150,
       maxWidth: 300,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
     },
     {
       field: "role",
       headerName: "Suited Role",
       width: 150,
-      editable: true,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
     },
     {
       field: "score",
       headerName: "Score",
+      headerClassName: "columnHeader",
+      headerAlign: "left",
       renderCell: (params: GridRenderCellParams<any>) => {
         let color = "0,0,0";
         let progress = params?.value;
         if (params?.value >= 75) {
-          color = "0, 153, 51";
+          color = "133, 224, 133";
         } else if (params?.value >= 50) {
           color = "255, 153, 51";
         } else {
@@ -336,6 +350,8 @@ export default function Table() {
       field: "status",
       headerName: "Status",
       width: 250,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
       renderCell: (params: GridRenderCellParams<any>) => {
         const handleChange = async (
           event: SelectChangeEvent,
@@ -401,6 +417,8 @@ export default function Table() {
       headerName: "Skills",
       width: 300,
       maxWidth: 800,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
       type: "actions",
       renderCell: (params: GridRenderCellParams<any>) => {
         let arr = [] as any;
@@ -430,11 +448,21 @@ export default function Table() {
       field: "comments",
       headerName: "Comments",
       minWidth: 240,
+      headerClassName: "columnHeader",
+      headerAlign: "left",
       renderCell: (params: GridRenderCellParams<any, Date>) => {
-        const handleChange = async (event: any, index: number) => {
+        const handleIconChange = async (event: any, index: number) => {
+          const newIcons = [...icon];
+          newIcons[index] = true;
+          setIcon(newIcons);
           const newComments = [...comments];
           newComments[index] = event.target.value;
           setComments(newComments);
+        };
+        const handleChange = async (event: any, index: number) => {
+          const newIcons = [...icon];
+          newIcons[index] = false;
+          setIcon(newIcons);
           const data = {
             email: params?.row?.email,
             status: params?.row?.status,
@@ -458,6 +486,8 @@ export default function Table() {
                 p: "2px 4px",
                 display: "flex",
                 alignItems: "center",
+                background: "#e5e8e8",
+                fontSize: 4,
               }}
             >
               <TextField
@@ -468,15 +498,20 @@ export default function Table() {
                 variant="standard"
                 value={comments[params?.row?.id - 1]}
                 defaultValue={params?.value}
+                onChange={(event) =>
+                  handleIconChange(event, params?.row?.id - 1)
+                }
               />
-              <IconButton
-                type="submit"
-                sx={{ p: "10px" }}
-                aria-label="submit"
-                onClick={(event) => handleChange(event, params?.row?.id - 1)}
-              >
-                <DoneOutlinedIcon color="success" />
-              </IconButton>
+              {icon[params?.row?.id - 1] && (
+                <IconButton
+                  type="submit"
+                  sx={{ p: "10px" }}
+                  aria-label="submit"
+                  onClick={(event) => handleChange(event, params?.row?.id - 1)}
+                >
+                  <DoneOutlinedIcon color="primary" />
+                </IconButton>
+              )}
             </Paper>
           </Stack>
         );
@@ -487,6 +522,8 @@ export default function Table() {
       headerName: "Actions",
       pinnable: true,
       type: "actions",
+      headerClassName: "columnHeader",
+      headerAlign: "left",
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
           icon={<RemoveRedEyeOutlinedIcon color="primary" />}
@@ -509,8 +546,11 @@ export default function Table() {
         width: "100%",
         py: 5,
         px: 2,
-        "& .column--header": {
-          backgroundColor: "rgba(255, 7, 0, 0.55)",
+        borderRadius: 5,
+        "& .columnHeader": {
+          backgroundColor: "#e5e8e8",
+          fontSize: 16,
+          fontWeight: 500,
         },
       }}
     >
@@ -523,15 +563,15 @@ export default function Table() {
           py: 2,
         }}
       >
-        <Button
-          variant="contained"
-          component="label"
+        <Fab
           color="secondary"
+          aria-label="edit"
           onClick={handleClickOpen}
-          startIcon={<UploadFileIcon />}
+          variant="extended"
         >
-          Upload Files
-        </Button>
+          <UploadFileIcon />
+          Upload
+        </Fab>
         <Box>
           <SearchChat setFiles={setFiles} />
         </Box>
